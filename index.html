@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Quest</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  min-height: 100vh;
+  background: #1a2e0e;
+  font-family: 'Segoe UI', sans-serif;
+  color: #f0e6c0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+h1 {
+  font-size: 32px;
+  color: #ffd700;
+  text-shadow: 0 2px 12px rgba(255,215,0,0.4);
+  margin-bottom: 6px;
+  text-align: center;
+}
+.subtitle {
+  color: #a0b088;
+  font-size: 14px;
+  margin-bottom: 40px;
+  text-align: center;
+  line-height: 1.7;
+}
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  max-width: 680px;
+  width: 100%;
+}
+.card {
+  background: rgba(30,20,5,0.9);
+  border: 2px solid #8b6914;
+  border-radius: 16px;
+  padding: 24px 20px;
+  width: 200px;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+}
+.card:hover {
+  transform: translateY(-4px);
+  border-color: #ffd700;
+  box-shadow: 0 8px 24px rgba(255,215,0,0.2);
+}
+.card.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.card-emoji {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 12px;
+}
+.card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f0e6c0;
+  margin-bottom: 6px;
+}
+.card-desc {
+  font-size: 12px;
+  color: #a08850;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+.card-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.badge-ready {
+  background: rgba(76,175,80,0.2);
+  color: #4caf50;
+  border: 1px solid #4caf50;
+}
+.badge-soon {
+  background: rgba(255,255,255,0.06);
+  color: #665530;
+  border: 1px dashed #554420;
+}
+footer {
+  margin-top: 48px;
+  color: #4a5a3a;
+  font-size: 11px;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<h1>⚔️ English Quest</h1>
+<p class="subtitle">好きなテーマを選んで<br>英語文法をマスターしよう！</p>
+
+<div class="cards">
+
+  <a class="card" href="themes/battle/">
+    <span class="card-emoji">⚔️</span>
+    <div class="card-title">バトルモード</div>
+    <div class="card-desc">RPGの道を進んで<br>魔物を倒しながら学ぼう</div>
+    <span class="card-badge badge-ready">✅ 遊べるよ</span>
+  </a>
+
+  <div class="card disabled">
+    <span class="card-emoji">🦁</span>
+    <div class="card-title">動物園モード</div>
+    <div class="card-desc">動物たちと一緒に<br>英語を学ぼう</div>
+    <span class="card-badge badge-soon">🔲 準備中</span>
+  </div>
+
+  <div class="card disabled">
+    <span class="card-emoji">🚃</span>
+    <div class="card-title">電車モード</div>
+    <div class="card-desc">駅をめぐりながら<br>英語を学ぼう</div>
+    <span class="card-badge badge-soon">🔲 準備中</span>
+  </div>
+
+</div>
+
+<footer>フリースクール English Quest</footer>
+
+</body>
+</html>
