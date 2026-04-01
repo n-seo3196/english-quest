@@ -13,10 +13,10 @@ body{touch-action:none;font-family:'Segoe UI',sans-serif;user-select:none}
 #score-bar{position:absolute;top:6px;left:6px;right:6px;display:flex;gap:5px;justify-content:space-between}
 .stat{background:rgba(40,30,10,0.8);color:#f0e6c0;padding:7px 16px;border-radius:6px;font-size:15px;font-weight:600;border:1px solid rgba(180,150,80,0.4)}
 .stat span{color:#ffd700}
-#quiz-box{position:fixed;top:34px;left:50%;transform:translateX(-50%);width:96%;max-width:500px;
-background:rgba(30,20,5,0.93);border:2px solid #8b6914;border-radius:12px;padding:14px 16px;
+#quiz-box{position:fixed;top:50px;left:50%;transform:translateX(-50%);width:fit-content;max-width:92vw;
+background:rgba(30,20,5,0.93);border:2px solid #8b6914;border-radius:12px;padding:14px 20px;
 text-align:center;display:none;z-index:3;pointer-events:none}
-#q-text{color:#f0e6c0;font-size:24px;line-height:1.6;margin-bottom:6px;font-weight:600}
+#q-text{color:#f0e6c0;font-size:24px;line-height:1.6;margin-bottom:6px;font-weight:600;white-space:nowrap}
 #hint-tip{color:#a08850;font-size:11px;margin-top:2px}
 #hint-box{margin-top:4px}
 .hint-slot{display:inline-block;margin:2px;padding:3px 7px;border-radius:5px;font-size:10px;font-weight:600}
@@ -232,8 +232,10 @@ function checkTile() {
     for (var zi = 0; zi < g.zones.length; zi++) {
       if (c >= g.zones[zi][0] && c <= g.zones[zi][1]) {
         g.hit = true;
+        g.chosenIdx = zi;
         var chosen = g.choices[zi];
         if (chosen === currentQ.answer) {
+          g.correct = true;
           answered = true; combo++;
           var bonus = Math.max(0, 3 - hintsOpened) * 50;
           var comboBonus = combo > 1 ? (combo - 1) * 30 : 0;
@@ -246,6 +248,7 @@ function checkTile() {
           updateUI();
           setTimeout(function() { nextStageOrEnd(); }, 1600);
         } else {
+          g.correct = false;
           combo = 0; score = Math.max(0, score - 20);
           addP(c * TILE + TILE / 2, wy * TILE + TILE / 2, '#ff4444', 10);
           showFB('✗ ' + chosen + ' ではない…', '#ff6666');
@@ -410,9 +413,11 @@ function draw() {
         var centerX = gx + gw / 2;
         var isCorrect = g.choices[gi] === currentQ.answer;
         var bgCol, borderCol, textCol;
-        if (g.hit) {
+        if (g.hit && g.correct) {
           if (isCorrect) { bgCol = 'rgba(40,120,40,0.92)'; borderCol = '#4caf50'; textCol = '#b9f6b9'; }
           else { bgCol = 'rgba(140,30,30,0.85)'; borderCol = '#c62828'; textCol = '#ffaaaa'; }
+        } else if (g.hit && !g.correct && gi === g.chosenIdx) {
+          bgCol = 'rgba(140,30,30,0.85)'; borderCol = '#c62828'; textCol = '#ffaaaa';
         } else { bgCol = 'rgba(50,35,15,0.92)'; borderCol = '#b8941e'; textCol = '#fff'; }
         cx.fillStyle = '#6a4e2a';
         cx.fillRect(gx + 4, signY - 8, 8, signH + 24);
