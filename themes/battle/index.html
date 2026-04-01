@@ -11,12 +11,12 @@ body{touch-action:none;font-family:'Segoe UI',sans-serif;user-select:none}
 #c{display:block;width:100%;height:100%}
 #ui{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2}
 #score-bar{position:absolute;top:6px;left:6px;right:6px;display:flex;gap:5px;justify-content:space-between}
-.stat{background:rgba(40,30,10,0.8);color:#f0e6c0;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:600;border:1px solid rgba(180,150,80,0.4)}
+.stat{background:rgba(40,30,10,0.8);color:#f0e6c0;padding:7px 16px;border-radius:6px;font-size:15px;font-weight:600;border:1px solid rgba(180,150,80,0.4)}
 .stat span{color:#ffd700}
 #quiz-box{position:fixed;top:34px;left:50%;transform:translateX(-50%);width:96%;max-width:500px;
 background:rgba(30,20,5,0.93);border:2px solid #8b6914;border-radius:12px;padding:14px 16px;
 text-align:center;display:none;z-index:3;pointer-events:none}
-#q-text{color:#f0e6c0;font-size:20px;line-height:1.6;margin-bottom:6px;font-weight:600}
+#q-text{color:#f0e6c0;font-size:24px;line-height:1.6;margin-bottom:6px;font-weight:600}
 #hint-tip{color:#a08850;font-size:11px;margin-top:2px}
 #hint-box{margin-top:4px}
 .hint-slot{display:inline-block;margin:2px;padding:3px 7px;border-radius:5px;font-size:10px;font-weight:600}
@@ -335,7 +335,7 @@ function draw() {
   cx.fillStyle = '#3a7a28';
   cx.fillRect(0, 0, W, H);
   var offY = H * 0.55;
-  var camOX = player.px - W / 2;
+  var camOX = 9 * TILE + TILE / 2 - W / 2;
   var camOY = camY - offY;
   var startR = Math.floor(camOY / TILE) - 1;
   var endR = Math.ceil((camOY + H) / TILE) + 1;
