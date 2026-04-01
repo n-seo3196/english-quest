@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>English Quest</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#3a7a28}
+body{touch-action:none;font-family:'Segoe UI',sans-serif;user-select:none}
+#c{display:block;width:100%;height:100%}
+#ui{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2}
+#score-bar{position:absolute;top:6px;left:6px;right:6px;display:flex;gap:5px;justify-content:space-between}
+.stat{background:rgba(40,30,10,0.8);color:#f0e6c0;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:600;border:1px solid rgba(180,150,80,0.4)}
+.stat span{color:#ffd700}
+#quiz-box{position:fixed;top:34px;left:50%;transform:translateX(-50%);width:96%;max-width:500px;
+background:rgba(30,20,5,0.93);border:2px solid #8b6914;border-radius:12px;padding:14px 16px;
+text-align:center;display:none;z-index:3;pointer-events:none}
+#q-text{color:#f0e6c0;font-size:20px;line-height:1.6;margin-bottom:6px;font-weight:600}
+#hint-tip{color:#a08850;font-size:11px;margin-top:2px}
+#hint-box{margin-top:4px}
+.hint-slot{display:inline-block;margin:2px;padding:3px 7px;border-radius:5px;font-size:10px;font-weight:600}
+.hint-locked{background:rgba(255,255,255,0.06);color:#665530;border:1px dashed #554420}
+.hint-open{background:rgba(255,215,0,0.12);color:#ffd700;border:1px solid rgba(255,215,0,0.4)}
+#feedback{position:fixed;top:32%;left:50%;transform:translate(-50%,-50%);font-size:26px;font-weight:700;
+color:#fff;text-shadow:0 2px 10px rgba(0,0,0,0.8);opacity:0;transition:opacity .3s;pointer-events:none;z-index:5}
+.overlay{position:fixed;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;
+align-items:center;justify-content:center;pointer-events:auto;z-index:10}
+#start-screen{background:rgba(20,40,10,0.95)}
+#game-over{background:rgba(20,40,10,0.93);display:none}
+.overlay h1,.overlay h2{color:#f0e6c0;font-size:24px;margin-bottom:8px;text-shadow:0 2px 8px rgba(0,0,0,0.5)}
+.overlay p{color:#a0b088;font-size:13px;margin-bottom:18px;text-align:center;padding:0 20px;line-height:1.7}
+.big-btn{padding:14px 40px;font-size:17px;font-weight:700;color:#fff;background:linear-gradient(135deg,#8b6914,#a07818);
+border:2px solid #c4a030;border-radius:10px;cursor:pointer;text-shadow:0 1px 3px rgba(0,0,0,0.4)}
+.final-score{color:#ffd700;font-size:42px;font-weight:700;margin-bottom:6px}
+.final-detail{color:#a0b088;font-size:13px;margin-bottom:18px}
+#dpad{position:fixed;bottom:20px;left:10px;pointer-events:auto;display:none;z-index:8}
+#dpad-grid{display:grid;grid-template-columns:50px 50px 50px;grid-template-rows:50px 50px 50px;gap:3px}
+.dpad-btn{width:50px;height:50px;background:rgba(30,20,5,0.7);border:2px solid rgba(180,150,80,0.5);
+border-radius:12px;color:#f0e6c0;font-size:22px;display:flex;align-items:center;justify-content:center;
+cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dpad-btn:active{background:rgba(180,150,80,0.35)}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="ui">
+  <div id="score-bar">
+    <div class="stat">SCORE <span id="s-score">0</span></div>
+    <div class="stat">STAGE <span id="s-stage">1</span>/5</div>
+    <div class="stat">COMBO <span id="s-combo">-</span></div>
+  </div>
+  <div id="feedback"></div>
+  <div id="dpad">
+    <div id="dpad-grid">
+      <div></div><div class="dpad-btn" data-dir="up">&#x25B2;</div><div></div>
+      <div class="dpad-btn" data-dir="left">&#x25C0;</div><div></div><div class="dpad-btn" data-dir="right">&#x25B6;</div>
+      <div></div><div class="dpad-btn" data-dir="down">&#x25BC;</div><div></div>
+    </div>
+  </div>
+</div>
+<div id="quiz-box">
+  <div id="q-text"></div>
+  <div id="hint-tip"></div>
+  <div id="hint-box"></div>
+</div>
+<div class="overlay" id="start-screen">
+  <h1>&#x2694;&#xFE0F; English Quest</h1>
+  <p>冒険の道を進んで<br>正しい答えのゲートをくぐろう！<br><br>&#x1F4A1; 道のアイテムを取るとヒントが開くよ<br><br>&#x2328;&#xFE0F; 矢印キー / WASD で移動<br>&#x1F4F1; スマホは十字キーで移動</p>
+  <button class="big-btn" id="start-btn">冒険に出発！</button>
+</div>
+<div class="overlay" id="game-over">
+  <h2 id="go-title">&#x1F3C6; QUEST COMPLETE</h2>
+  <div class="final-score" id="final-score">0</div>
+  <div class="final-detail" id="final-detail"></div>
+  <button class="big-btn" id="retry-btn">もう一度プレイ</button>
+</div>
+
+<script>
+var cv = document.getElementById('c');
+var cx = cv.getContext('2d');
+var W = 0, H = 0;
+var TILE = 40;
+var ROAD_LEFT = 4;
+var ROAD_RIGHT = 16;
+var MAP_W = 21;
+
+function resize() { W = cv.width = window.innerWidth; H = cv.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+var questions = [
+  {emoji:"🐉", sentence:"The hero ______ the dragon.", answer:"attacks",
+   choices:["attack","attacks","attacked"],
+   hints:["主語が he/she/it → 動詞に s","The hero = 三人称単数","現在の文 → 現在形"]},
+  {emoji:"🧙", sentence:"She ______ magic every day.", answer:"uses",
+   choices:["use","uses","used"],
+   hints:["every day → 現在形","She = 三人称単数 → s","use の三単現は uses"]},
+  {emoji:"👾", sentence:"The monsters ______ the town now.", answer:"are attacking",
+   choices:["attack","attacks","are attacking"],
+   hints:["now = 今 → 現在進行形","monsters = 複数 → are","進行形 = are + 動詞ing"]},
+  {emoji:"🛡️", sentence:"I ______ my shield yesterday.", answer:"used",
+   choices:["use","uses","used"],
+   hints:["yesterday → 過去形","use の過去形は used","過去形は主語で変わらない"]},
+  {emoji:"⚔️", sentence:"We ______ the boss last night.", answer:"defeated",
+   choices:["defeat","defeats","defeated"],
+   hints:["last night → 過去形","defeat の過去形 = defeated","We でも過去形は同じ"]}
+];
+
+var player = { col: 10, worldY: 0, px: 0, py: 0, dir: 'up', frame: 0 };
+var camY = 0;
+var score = 0, combo = 0, stage = 0;
+var currentQ = null, hintsOpened = 0, answered = false;
+var gameState = 'title';
+var lastMoveTime = 0;
+var keysDown = {};
+var particles = [];
+var hintItems = [];
+var gateObj = null;
+
+function seededRand(x, y) {
+  var n = Math.sin(x * 127.1 + y * 311.7) * 43758.5;
+  return n - Math.floor(n);
+}
+
+function getTile(col, row) {
+  if (col < ROAD_LEFT || col > ROAD_RIGHT) return 0;
+  if (col === ROAD_LEFT || col === ROAD_RIGHT) return 2;
+  return 1;
+}
+
+function shuffleArray(arr) {
+  var sh = arr.slice();
+  for (var j = sh.length - 1; j > 0; j--) {
+    var k = Math.floor(Math.random() * (j + 1));
+    var tmp = sh[j]; sh[j] = sh[k]; sh[k] = tmp;
+  }
+  return sh;
+}
+
+function startGame() {
+  document.getElementById('start-screen').style.display = 'none';
+  if ('ontouchstart' in window) document.getElementById('dpad').style.display = 'block';
+  stage = 0; score = 0; combo = 0;
+  startStage();
+}
+
+function startStage() {
+  currentQ = questions[stage];
+  hintsOpened = 0; answered = false; particles = [];
+  player.col = 10; player.worldY = 0; player.dir = 'up'; player.frame = 0;
+  player.px = player.col * TILE + TILE / 2;
+  player.py = player.worldY * TILE + TILE / 2;
+  camY = player.py;
+  hintItems = [];
+  var hDist = [-8, -18, -28];
+  for (var i = 0; i < Math.min(hDist.length, currentQ.hints.length); i++) {
+    hintItems.push({ worldY: hDist[i], col: 7 + Math.floor(Math.random() * 7), collected: false });
+  }
+  var sh = shuffleArray(currentQ.choices);
+  gateObj = { worldY: -38, choices: sh, hit: false, zones: [[5,8],[8,12],[12,15]] };
+  document.getElementById('s-stage').textContent = (stage + 1);
+  updateUI(); showQuiz();
+  gameState = 'playing';
+}
+
+function showQuiz() {
+  var q = currentQ;
+  var sentence = q.sentence.replace('______', '<b style="color:#ffd700;border-bottom:2px dashed #ffd700;padding:0 6px">______</b>');
+  document.getElementById('q-text').innerHTML = '<span style="font-size:24px">' + q.emoji + '</span> ' + sentence;
+  var tip = hintsOpened < q.hints.length ? '💡 道のキラキラを取るとヒントが開く' : '';
+  document.getElementById('hint-tip').textContent = tip;
+  var hh = '';
+  for (var i = 0; i < q.hints.length; i++) {
+    hh += i < hintsOpened
+      ? '<span class="hint-slot hint-open">💡 ' + q.hints[i] + '</span>'
+      : '<span class="hint-slot hint-locked">🔒 ヒント' + (i + 1) + '</span>';
+  }
+  document.getElementById('hint-box').innerHTML = hh;
+  document.getElementById('quiz-box').style.display = 'block';
+}
+
+function updateUI() {
+  document.getElementById('s-score').textContent = score;
+  document.getElementById('s-combo').textContent = combo > 0 ? 'x' + combo : '-';
+}
+
+function showFB(txt, col) {
+  var fb = document.getElementById('feedback');
+  fb.textContent = txt; fb.style.color = col; fb.style.opacity = '1';
+  setTimeout(function() { fb.style.opacity = '0'; }, 1400);
+}
+
+function addP(wx, wy, col, n) {
+  for (var i = 0; i < n; i++) {
+    var a = Math.random() * Math.PI * 2, sp = Math.random() * 2.5 + 0.8;
+    particles.push({ wx: wx, wy: wy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 30, col: col, sz: Math.random() * 3 + 1 });
+  }
+}
+
+function tryMove(dir) {
+  if (gameState !== 'playing' || answered) return;
+  var nc = player.col, nwy = player.worldY;
+  player.dir = dir;
+  if (dir === 'up') nwy--;
+  else if (dir === 'down') nwy++;
+  else if (dir === 'left') nc--;
+  else if (dir === 'right') nc++;
+  if (nc < 0 || nc >= MAP_W) return;
+  if (getTile(nc, nwy) === 0) return;
+  player.col = nc; player.worldY = nwy;
+  player.frame = (player.frame + 1) % 4;
+  checkTile();
+}
+
+function checkTile() {
+  var wy = player.worldY, c = player.col;
+  for (var i = 0; i < hintItems.length; i++) {
+    var h = hintItems[i];
+    if (!h.collected && h.worldY === wy && h.col === c) {
+      h.collected = true;
+      if (hintsOpened < currentQ.hints.length) {
+        hintsOpened++;
+        addP(c * TILE + TILE / 2, wy * TILE + TILE / 2, '#ffd700', 12);
+        showFB('💡 ヒント解放！', '#ffd700');
+        showQuiz();
+      }
+    }
+  }
+  var g = gateObj;
+  if (g && !g.hit && wy === g.worldY) {
+    for (var zi = 0; zi < g.zones.length; zi++) {
+      if (c >= g.zones[zi][0] && c <= g.zones[zi][1]) {
+        g.hit = true;
+        var chosen = g.choices[zi];
+        if (chosen === currentQ.answer) {
+          answered = true; combo++;
+          var bonus = Math.max(0, 3 - hintsOpened) * 50;
+          var comboBonus = combo > 1 ? (combo - 1) * 30 : 0;
+          var pts = 100 + bonus + comboBonus;
+          score += pts;
+          addP(c * TILE + TILE / 2, wy * TILE + TILE / 2, '#4caf50', 18);
+          showFB('✨ 正解！ +' + pts + 'pt', '#4caf50');
+          var s2 = currentQ.sentence.replace('______', '<b style="color:#6f2">' + currentQ.answer + '</b>');
+          document.getElementById('q-text').innerHTML = '<span style="font-size:24px">' + currentQ.emoji + '</span> ' + s2;
+          updateUI();
+          setTimeout(function() { nextStageOrEnd(); }, 1600);
+        } else {
+          combo = 0; score = Math.max(0, score - 20);
+          addP(c * TILE + TILE / 2, wy * TILE + TILE / 2, '#ff4444', 10);
+          showFB('✗ ' + chosen + ' ではない…', '#ff6666');
+          updateUI();
+          var savedWY = wy;
+          setTimeout(function() { player.worldY = savedWY + 4; g.hit = false; }, 600);
+        }
+        break;
+      }
+    }
+  }
+}
+
+function nextStageOrEnd() {
+  stage++;
+  if (stage >= questions.length) {
+    gameState = 'gameover';
+    document.getElementById('quiz-box').style.display = 'none';
+    document.getElementById('final-score').textContent = score;
+    document.getElementById('final-detail').textContent = '全' + questions.length + 'ステージクリア！';
+    document.getElementById('game-over').style.display = 'flex';
+  } else { startStage(); }
+}
+
+window.addEventListener('keydown', function(e) {
+  keysDown[e.key] = true;
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].indexOf(e.key) >= 0) e.preventDefault();
+});
+window.addEventListener('keyup', function(e) { keysDown[e.key] = false; });
+
+var dpadBtns = document.querySelectorAll('.dpad-btn');
+for (var di = 0; di < dpadBtns.length; di++) {
+  (function(btn) {
+    var dir = btn.getAttribute('data-dir');
+    var iv = null;
+    btn.addEventListener('touchstart', function(e) {
+      e.preventDefault(); tryMove(dir);
+      iv = setInterval(function() { tryMove(dir); }, 120);
+    });
+    btn.addEventListener('touchend', function() { clearInterval(iv); });
+    btn.addEventListener('touchcancel', function() { clearInterval(iv); });
+  })(dpadBtns[di]);
+}
+
+document.getElementById('start-btn').addEventListener('click', startGame);
+document.getElementById('retry-btn').addEventListener('click', function() { location.reload(); });
+
+function handleKeys() {
+  if (gameState !== 'playing') return;
+  var now = Date.now();
+  if (now - lastMoveTime < 100) return;
+  if (keysDown['ArrowUp'] || keysDown['w']) { tryMove('up'); lastMoveTime = now; }
+  else if (keysDown['ArrowDown'] || keysDown['s']) { tryMove('down'); lastMoveTime = now; }
+  else if (keysDown['ArrowLeft'] || keysDown['a']) { tryMove('left'); lastMoveTime = now; }
+  else if (keysDown['ArrowRight'] || keysDown['d']) { tryMove('right'); lastMoveTime = now; }
+}
+
+function update() {
+  handleKeys();
+  var tx = player.col * TILE + TILE / 2;
+  var ty = player.worldY * TILE + TILE / 2;
+  player.px += (tx - player.px) * 0.3;
+  player.py += (ty - player.py) * 0.3;
+  camY += (player.py - camY) * 0.12;
+  for (var i = particles.length - 1; i >= 0; i--) {
+    var p = particles[i];
+    p.wx += p.vx; p.wy += p.vy; p.life--; p.vy += 0.03;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+
+function drawRoundRect(x, y, w, h, r) {
+  cx.beginPath();
+  cx.moveTo(x + r, y);
+  cx.lineTo(x + w - r, y);
+  cx.quadraticCurveTo(x + w, y, x + w, y + r);
+  cx.lineTo(x + w, y + h - r);
+  cx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  cx.lineTo(x + r, y + h);
+  cx.quadraticCurveTo(x, y + h, x, y + h - r);
+  cx.lineTo(x, y + r);
+  cx.quadraticCurveTo(x, y, x + r, y);
+  cx.closePath();
+}
+
+function draw() {
+  cx.fillStyle = '#3a7a28';
+  cx.fillRect(0, 0, W, H);
+  var offY = H * 0.55;
+  var camOX = player.px - W / 2;
+  var camOY = camY - offY;
+  var startR = Math.floor(camOY / TILE) - 1;
+  var endR = Math.ceil((camOY + H) / TILE) + 1;
+  for (var r = startR; r <= endR; r++) {
+    for (var c = 0; c < MAP_W; c++) {
+      var sx = c * TILE - camOX;
+      var sy = r * TILE - camOY;
+      if (sx < -TILE || sx > W + TILE) continue;
+      var t = getTile(c, r);
+      if (t === 0) {
+        cx.fillStyle = '#3a7a28';
+        cx.fillRect(sx, sy, TILE, TILE);
+        var rnd = seededRand(c, r);
+        if (rnd > 0.35) {
+          cx.fillStyle = '#4a8a35';
+          cx.fillRect(sx + rnd * 18, sy + rnd * 22, 2, 5);
+          cx.fillRect(sx + rnd * 18 + 5, sy + rnd * 22 - 2, 2, 6);
+        }
+        if (rnd > 0.78) {
+          cx.fillStyle = rnd > 0.9 ? '#e55' : '#fc3';
+          cx.beginPath(); cx.arc(sx + rnd * 28, sy + 14, 2.5, 0, Math.PI * 2); cx.fill();
+        }
+        if (rnd > 0.91 && (c < 3 || c > 17)) {
+          cx.fillStyle = '#5a3a1a'; cx.fillRect(sx + 18, sy + 18, 5, 12);
+          cx.fillStyle = '#2e6e1c';
+          cx.beginPath(); cx.arc(sx + 20, sy + 10, 14, 0, Math.PI * 2); cx.fill();
+          cx.fillStyle = '#2d5a1e';
+          cx.beginPath(); cx.arc(sx + 20, sy + 6, 12, 0, Math.PI * 2); cx.fill();
+        }
+      } else if (t === 1) {
+        cx.fillStyle = '#c4a86a';
+        cx.fillRect(sx, sy, TILE, TILE);
+        var rnd2 = seededRand(c + 99, r + 99);
+        if (rnd2 > 0.65) {
+          cx.fillStyle = 'rgba(160,130,80,0.35)';
+          cx.fillRect(sx + rnd2 * 20, sy + rnd2 * 18, 5, 3);
+        }
+      } else {
+        cx.fillStyle = '#8a7a50'; cx.fillRect(sx, sy, TILE, TILE);
+        cx.fillStyle = '#9a8a5a'; cx.fillRect(sx + 2, sy + 2, TILE - 4, TILE - 4);
+      }
+    }
+  }
+  for (var hi = 0; hi < hintItems.length; hi++) {
+    var it = hintItems[hi];
+    if (it.collected) continue;
+    var ix = it.col * TILE + TILE / 2 - camOX;
+    var iy = it.worldY * TILE + TILE / 2 - camOY;
+    if (iy < -40 || iy > H + 40) continue;
+    var pulse = Math.sin(Date.now() * 0.005) * 3;
+    cx.fillStyle = 'rgba(255,215,0,0.2)';
+    cx.beginPath(); cx.arc(ix, iy, 18 + pulse, 0, Math.PI * 2); cx.fill();
+    cx.fillStyle = '#ffd700';
+    cx.beginPath();
+    cx.moveTo(ix, iy - 12); cx.lineTo(ix + 7, iy - 4); cx.lineTo(ix + 12, iy);
+    cx.lineTo(ix + 7, iy + 4); cx.lineTo(ix, iy + 12); cx.lineTo(ix - 7, iy + 4);
+    cx.lineTo(ix - 12, iy); cx.lineTo(ix - 7, iy - 4); cx.closePath(); cx.fill();
+    cx.fillStyle = '#fff'; cx.font = 'bold 12px sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+    cx.fillText('?', ix, iy + 1);
+  }
+  if (gateObj) {
+    var g = gateObj;
+    var gateScreenY = g.worldY * TILE - camOY;
+    if (gateScreenY > -80 && gateScreenY < H + 80) {
+      var signH = 56;
+      var signY = gateScreenY - 10;
+      for (var gi = 0; gi < 3; gi++) {
+        var zs = g.zones[gi][0];
+        var ze = g.zones[gi][1];
+        var gx = zs * TILE - camOX;
+        var gw = (ze - zs + 1) * TILE;
+        var centerX = gx + gw / 2;
+        var isCorrect = g.choices[gi] === currentQ.answer;
+        var bgCol, borderCol, textCol;
+        if (g.hit) {
+          if (isCorrect) { bgCol = 'rgba(40,120,40,0.92)'; borderCol = '#4caf50'; textCol = '#b9f6b9'; }
+          else { bgCol = 'rgba(140,30,30,0.85)'; borderCol = '#c62828'; textCol = '#ffaaaa'; }
+        } else { bgCol = 'rgba(50,35,15,0.92)'; borderCol = '#b8941e'; textCol = '#fff'; }
+        cx.fillStyle = '#6a4e2a';
+        cx.fillRect(gx + 4, signY - 8, 8, signH + 24);
+        cx.fillStyle = '#7d5c34';
+        cx.fillRect(gx + 6, signY - 8, 4, signH + 24);
+        cx.fillStyle = '#6a4e2a';
+        cx.fillRect(gx + gw - 12, signY - 8, 8, signH + 24);
+        cx.fillStyle = '#7d5c34';
+        cx.fillRect(gx + gw - 10, signY - 8, 4, signH + 24);
+        drawRoundRect(gx + 6, signY, gw - 12, signH, 8);
+        cx.fillStyle = bgCol; cx.fill();
+        cx.strokeStyle = borderCol; cx.lineWidth = 2.5; cx.stroke();
+        drawRoundRect(gx + 10, signY + 3, gw - 20, signH - 6, 5);
+        cx.fillStyle = 'rgba(255,255,255,0.06)'; cx.fill();
+        var badge = ['A', 'B', 'C'][gi];
+        cx.fillStyle = borderCol;
+        cx.beginPath(); cx.arc(gx + 22, signY + 16, 10, 0, Math.PI * 2); cx.fill();
+        cx.fillStyle = g.hit ? (isCorrect ? '#1b5e20' : '#4a0000') : '#3a2800';
+        cx.font = 'bold 12px sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+        cx.fillText(badge, gx + 22, signY + 16);
+        cx.fillStyle = textCol;
+        cx.font = 'bold 18px sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+        cx.fillText(g.choices[gi], centerX, signY + signH / 2 + 4);
+      }
+      if (!g.hit) {
+        var labelCX = 10 * TILE + TILE / 2 - camOX;
+        var labelCY = signY - 18;
+        cx.fillStyle = 'rgba(30,20,5,0.85)';
+        drawRoundRect(labelCX - 64, labelCY - 12, 128, 24, 6);
+        cx.fill();
+        cx.strokeStyle = '#b8941e'; cx.lineWidth = 1.5; cx.stroke();
+        cx.fillStyle = '#ffd700'; cx.font = 'bold 13px sans-serif';
+        cx.fillText('⚔ どれが正解？', labelCX, labelCY);
+      }
+    }
+  }
+  var ppx = player.px - camOX;
+  var ppy = player.py - camOY;
+  cx.save(); cx.translate(ppx, ppy);
+  var bob = Math.sin(Date.now() * 0.008) * 1.5;
+  var isMoving = keysDown['ArrowUp'] || keysDown['ArrowDown'] || keysDown['ArrowLeft'] || keysDown['ArrowRight'] || keysDown['w'] || keysDown['a'] || keysDown['s'] || keysDown['d'];
+  var legF = isMoving ? Math.sin(Date.now() * 0.015) * 5 : 0;
+  var armF = isMoving ? Math.sin(Date.now() * 0.015) * 3 : 0;
+  cx.fillStyle = 'rgba(0,0,0,0.18)';
+  cx.beginPath(); cx.ellipse(0, 20, 14, 6, 0, 0, Math.PI * 2); cx.fill();
+  cx.fillStyle = 'rgba(170,35,35,0.75)';
+  cx.beginPath(); cx.moveTo(-7, -2 + bob); cx.lineTo(7, -2 + bob);
+  cx.lineTo(9, 14 + bob); cx.lineTo(-9, 14 + bob); cx.closePath(); cx.fill();
+  cx.fillStyle = '#5a4a2a';
+  cx.fillRect(-8, 8 + bob + legF, 6, 9);
+  cx.fillRect(2, 8 + bob - legF, 6, 9);
+  cx.fillStyle = '#3a2a1a';
+  cx.fillRect(-9, 15 + bob + legF, 8, 4);
+  cx.fillRect(1, 15 + bob - legF, 8, 4);
+  cx.fillStyle = '#2266aa';
+  cx.fillRect(-10, -3 + bob, 20, 14);
+  cx.fillStyle = '#8a6a2a'; cx.fillRect(-10, 8 + bob, 20, 3);
+  cx.fillStyle = '#ffd700'; cx.fillRect(-2, 8 + bob, 4, 3);
+  cx.fillStyle = '#2266aa';
+  cx.fillRect(-14, 0 + bob + armF, 5, 10);
+  cx.fillRect(9, 0 + bob - armF, 5, 10);
+  cx.fillStyle = '#e8c090';
+  cx.fillRect(-14, 8 + bob + armF, 5, 4);
+  cx.fillRect(9, 8 + bob - armF, 5, 4);
+  cx.fillStyle = '#e8c090';
+  cx.beginPath(); cx.arc(0, -9 + bob, 10, 0, Math.PI * 2); cx.fill();
+  cx.fillStyle = '#4a3520';
+  cx.beginPath(); cx.arc(0, -13 + bob, 10, Math.PI, Math.PI * 2); cx.fill();
+  cx.fillRect(-10, -13 + bob, 2, 6); cx.fillRect(8, -13 + bob, 2, 6);
+  var eyeX = player.dir === 'left' ? -2 : player.dir === 'right' ? 2 : 0;
+  var eyeYd = player.dir === 'up' ? -1 : player.dir === 'down' ? 1 : 0;
+  cx.fillStyle = '#222';
+  cx.fillRect(-5 + eyeX, -10 + bob + eyeYd, 3, 3);
+  cx.fillRect(2 + eyeX, -10 + bob + eyeYd, 3, 3);
+  cx.fillStyle = '#ccc'; cx.fillRect(12, -16 + bob, 2, 18);
+  cx.fillStyle = '#8b6914'; cx.fillRect(10, -1 + bob, 6, 3);
+  cx.restore();
+  for (var pi = 0; pi < particles.length; pi++) {
+    var pp = particles[pi];
+    cx.globalAlpha = pp.life / 30; cx.fillStyle = pp.col;
+    cx.beginPath(); cx.arc(pp.wx - camOX, pp.wy - camOY, pp.sz, 0, Math.PI * 2); cx.fill();
+  }
+  cx.globalAlpha = 1;
+  if (!answered && gateObj && player.worldY > gateObj.worldY + 6) {
+    var alpha2 = 0.4 + Math.sin(Date.now() * 0.004) * 0.2;
+    cx.fillStyle = 'rgba(255,215,0,' + alpha2 + ')';
+    cx.font = 'bold 15px sans-serif'; cx.textAlign = 'center';
+    cx.fillText('▲ 上に進もう！', W / 2, H * 0.42);
+  }
+}
+
+function loop() { update(); draw(); requestAnimationFrame(loop); }
+loop();
+</script>
+</body>
+</html>
