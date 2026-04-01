@@ -158,7 +158,7 @@ function startStage() {
     hintItems.push({ worldY: hDist[i], col: 7 + Math.floor(Math.random() * 7), collected: false });
   }
   var sh = shuffleArray(currentQ.choices);
-  gateObj = { worldY: -38, choices: sh, hit: false, zones: [[5,7],[9,11],[13,15]] };
+  gateObj = { worldY: -38, choices: sh, hit: false, zones: [[5,8],[9,12],[13,16]] };
   document.getElementById('s-stage').textContent = (stage + 1);
   updateUI(); showQuiz();
   gameState = 'playing';
@@ -406,11 +406,11 @@ function draw() {
       var signH = 56;
       var signY = gateScreenY - 10;
       for (var gi = 0; gi < 3; gi++) {
-        var zs = g.zones[gi][0];
-        var ze = g.zones[gi][1];
-        var gx = zs * TILE - camOX;
-        var gw = (ze - zs + 1) * TILE;
-        var centerX = gx + gw / 2;
+        var signW = 4 * TILE;
+        var roadCenterX = 10 * TILE + TILE / 2 - camOX;
+        var centerX = roadCenterX + (gi - 1) * signW;
+        var gx = centerX - signW / 2;
+        var gw = signW;
         var isCorrect = g.choices[gi] === currentQ.answer;
         var bgCol, borderCol, textCol;
         if (g.hit && g.correct) {
