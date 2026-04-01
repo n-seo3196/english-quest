@@ -229,8 +229,8 @@ function checkTile() {
   }
   var g = gateObj;
   if (g && !g.hit && wy === g.worldY) {
-    for (var zi = 0; zi < g.zones.length; zi++) {
-      if (c >= g.zones[zi][0] && c <= g.zones[zi][1]) {
+    var zi = c <= 8 ? 0 : c <= 12 ? 1 : 2;
+    {
         g.hit = true;
         g.chosenIdx = zi;
         var chosen = g.choices[zi];
@@ -256,8 +256,6 @@ function checkTile() {
           var savedWY = wy;
           setTimeout(function() { player.worldY = savedWY + 4; g.hit = false; }, 600);
         }
-        break;
-      }
     }
   }
 }
