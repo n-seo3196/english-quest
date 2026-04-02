@@ -8,7 +8,9 @@
 {
   emoji: "🐉",                              // ステージのシンボル絵文字
   sentence: "The hero ______ the dragon.",   // 穴埋め文（______ が空欄）
-  answer: "attacks",                         // 正解の文字列
+  answer: "attacks",                         // 正解の英語文字列
+  japanese: "勇者はドラゴンを______。",       // 日本語訳（______ は空欄のまま）
+  j_answer: "攻撃する",                      // 正解の日本語訳（正解時にブランクに表示）
   choices: ["attack", "attacks", "attacked"],// 選択肢（3つ。ゲートに表示）
   hints: [                                   // ヒント（最大3つ）
     "ヒント1：基本ルール",
@@ -17,6 +19,38 @@
   ]
 }
 ```
+
+---
+
+## 問題文の表示ルール（全テーマ共通）
+
+### クイズボックスの表示
+
+```
+🐉 The hero ______ the dragon.
+　 勇者はドラゴンを______。
+```
+
+- 英語の問題文を上、日本語訳を下に表示する
+- 両方とも空欄は `______` のまま表示する
+- ヒントのスロット表示（ヒント1・ヒント2・ヒント3）はクイズボックスには出さない
+
+### 正解時の表示
+
+```
+🐉 The hero attacks the dragon.     ← 英語：正解単語が緑色
+　 勇者はドラゴンを攻撃する。         ← 日本語：j_answer が緑色
+```
+
+- 英語の `______` → `answer`（緑・太字）
+- 日本語の `______` → `j_answer`（緑）
+- 英語と日本語で **別の単語を使う**（英語はそのまま、日本語は自然な訳語）
+
+### j_answer の書き方ルール
+
+- 辞書形（基本形）で書く：「攻撃する」「使う」「倒した」など
+- 文脈に合った自然な日本語にする
+- 動詞は活用済みでも可（例：過去の文なら「使った」「倒した」）
 
 ---
 
@@ -74,9 +108,11 @@
   emoji: "🐉",
   sentence: "The hero ______ the dragon.",
   answer: "attacks",
+  japanese: "勇者はドラゴンを______。",
+  j_answer: "攻撃する",
   choices: ["attack", "attacks", "attacked"],
   hints: [
-    "主語が he/she/it → 動詞に s",
+    "主語 = 自分と相手以外の1人か1つ",
     "The hero = 三人称単数",
     "現在の文 → 現在形"
   ]
@@ -89,6 +125,8 @@
   emoji: "🧙",
   sentence: "She ______ magic every day.",
   answer: "uses",
+  japanese: "彼女は毎日、魔法を______。",
+  j_answer: "使う",
   choices: ["use", "uses", "used"],
   hints: [
     "every day → 現在形",
@@ -104,6 +142,8 @@
   emoji: "👾",
   sentence: "The monsters ______ the town now.",
   answer: "are attacking",
+  japanese: "モンスターたちは今、街を______。",
+  j_answer: "攻撃している",
   choices: ["attack", "attacks", "are attacking"],
   hints: [
     "now = 今 → 現在進行形",
@@ -119,6 +159,8 @@
   emoji: "🛡️",
   sentence: "I ______ my shield yesterday.",
   answer: "used",
+  japanese: "私は昨日、盾を______。",
+  j_answer: "使った",
   choices: ["use", "uses", "used"],
   hints: [
     "yesterday → 過去形",
@@ -134,6 +176,8 @@
   emoji: "⚔️",
   sentence: "We ______ the boss last night.",
   answer: "defeated",
+  japanese: "私たちは昨夜、ボスを______。",
+  j_answer: "倒した",
   choices: ["defeat", "defeats", "defeated"],
   hints: [
     "last night → 過去形",

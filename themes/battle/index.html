@@ -10,14 +10,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:#3a7a28}
 body{touch-action:none;font-family:'Segoe UI',sans-serif;user-select:none}
 #c{display:block;width:100%;height:100%}
 #ui{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2}
-#score-bar{position:absolute;top:6px;left:6px;right:6px;display:flex;gap:5px;justify-content:space-between}
+#score-bar{position:absolute;top:6px;left:6px;right:6px;display:flex;gap:5px;justify-content:space-between;align-items:flex-start}
 .stat{background:rgba(40,30,10,0.8);color:#f0e6c0;padding:7px 16px;border-radius:6px;font-size:15px;font-weight:600;border:1px solid rgba(180,150,80,0.4)}
 .stat span{color:#ffd700}
 #quiz-box{position:fixed;top:50px;left:50%;transform:translateX(-50%);width:fit-content;max-width:92vw;
 background:rgba(30,20,5,0.93);border:2px solid #8b6914;border-radius:12px;padding:14px 20px;
 text-align:center;display:none;z-index:3;pointer-events:none}
 #q-text{color:#f0e6c0;font-size:24px;line-height:1.6;margin-bottom:6px;font-weight:600;white-space:nowrap}
-#hint-tip{color:#a08850;font-size:11px;margin-top:2px}
+#hint-tip{color:rgba(240,225,170,0.75);font-size:20px;margin-top:6px;letter-spacing:0.02em}
 #hint-box{margin-top:4px}
 .hint-slot{display:inline-block;margin:2px;padding:3px 7px;border-radius:5px;font-size:10px;font-weight:600}
 .hint-locked{background:rgba(255,255,255,0.06);color:#665530;border:1px dashed #554420}
@@ -34,6 +34,13 @@ align-items:center;justify-content:center;pointer-events:auto;z-index:10}
 border:2px solid #c4a030;border-radius:10px;cursor:pointer;text-shadow:0 1px 3px rgba(0,0,0,0.4)}
 .final-score{color:#ffd700;font-size:42px;font-weight:700;margin-bottom:6px}
 .final-detail{color:#a0b088;font-size:13px;margin-bottom:18px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.1}}
+#left-col{display:flex;flex-direction:column;gap:5px;align-items:stretch}
+#hint-noti{background:rgba(30,20,5,0.85);color:#ffd700;font-size:13px;font-weight:700;padding:7px 16px;border-radius:6px;border:1px solid rgba(255,215,0,0.5);text-align:center;line-height:1.8;animation:blink 1.4s ease-in-out infinite;pointer-events:none;z-index:3}
+#inventory{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);display:none;gap:7px;z-index:3;pointer-events:none}
+.inv-slot{width:22vw;max-width:165px;min-height:200px;background:rgba(255,252,235,0.12);border:2px dashed rgba(180,150,80,0.35);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:12px;padding:16px 10px;text-align:center;font-size:14px;color:rgba(180,150,80,0.4);transition:all .35s}
+.inv-slot.filled{background:rgba(255,252,220,0.93);border:2px solid #c4a030;color:#3a2800;font-weight:700;font-size:14px;box-shadow:0 2px 12px rgba(0,0,0,0.35)}
+.inv-slot .slot-lbl{font-size:10px;color:#a08040;font-weight:700;letter-spacing:.05em}
 #dpad{position:fixed;bottom:20px;left:10px;pointer-events:auto;display:none;z-index:8}
 #dpad-grid{display:grid;grid-template-columns:50px 50px 50px;grid-template-rows:50px 50px 50px;gap:3px}
 .dpad-btn{width:50px;height:50px;background:rgba(30,20,5,0.7);border:2px solid rgba(180,150,80,0.5);
@@ -46,7 +53,10 @@ cursor:pointer;-webkit-tap-highlight-color:transparent}
 <canvas id="c"></canvas>
 <div id="ui">
   <div id="score-bar">
-    <div class="stat">SCORE <span id="s-score">0</span></div>
+    <div id="left-col">
+      <div class="stat">SCORE <span id="s-score">0</span></div>
+      <div id="hint-noti" style="display:none">ヒントなし<br>=スコアUP▲</div>
+    </div>
     <div class="stat">STAGE <span id="s-stage">1</span>/5</div>
     <div class="stat">COMBO <span id="s-combo">-</span></div>
   </div>
@@ -58,6 +68,11 @@ cursor:pointer;-webkit-tap-highlight-color:transparent}
       <div></div><div class="dpad-btn" data-dir="down">&#x25BC;</div><div></div>
     </div>
   </div>
+</div>
+<div id="inventory">
+  <div class="inv-slot" id="inv-slot-0"></div>
+  <div class="inv-slot" id="inv-slot-1"></div>
+  <div class="inv-slot" id="inv-slot-2"></div>
 </div>
 <div id="quiz-box">
   <div id="q-text"></div>
@@ -91,18 +106,23 @@ window.addEventListener('resize', resize);
 
 var questions = [
   {emoji:"🐉", sentence:"The hero ______ the dragon.", answer:"attacks",
+   japanese:"勇者はドラゴンを______。", j_answer:"攻撃する",
    choices:["attack","attacks","attacked"],
-   hints:["主語が he/she/it → 動詞に s","The hero = 三人称単数","現在の文 → 現在形"]},
+   hints:["主語 = 自分と相手以外の<br>1人か1つ","The hero = 三人称単数","現在の文 → 現在形"]},
   {emoji:"🧙", sentence:"She ______ magic every day.", answer:"uses",
+   japanese:"彼女は毎日、魔法を______。", j_answer:"使う",
    choices:["use","uses","used"],
    hints:["every day → 現在形","She = 三人称単数 → s","use の三単現は uses"]},
   {emoji:"👾", sentence:"The monsters ______ the town now.", answer:"are attacking",
+   japanese:"モンスターたちは今、街を______。", j_answer:"攻撃している",
    choices:["attack","attacks","are attacking"],
    hints:["now = 今 → 現在進行形","monsters = 複数 → are","進行形 = are + 動詞ing"]},
   {emoji:"🛡️", sentence:"I ______ my shield yesterday.", answer:"used",
+   japanese:"私は昨日、盾を______。", j_answer:"使った",
    choices:["use","uses","used"],
    hints:["yesterday → 過去形","use の過去形は used","過去形は主語で変わらない"]},
   {emoji:"⚔️", sentence:"We ______ the boss last night.", answer:"defeated",
+   japanese:"私たちは昨夜、ボスを______。", j_answer:"倒した",
    choices:["defeat","defeats","defeated"],
    hints:["last night → 過去形","defeat の過去形 = defeated","We でも過去形は同じ"]}
 ];
@@ -141,6 +161,8 @@ function shuffleArray(arr) {
 function startGame() {
   document.getElementById('start-screen').style.display = 'none';
   if ('ontouchstart' in window) document.getElementById('dpad').style.display = 'block';
+  document.getElementById('hint-noti').style.display = 'block';
+  document.getElementById('inventory').style.display = 'flex';
   stage = 0; score = 0; combo = 0;
   startStage();
 }
@@ -160,7 +182,7 @@ function startStage() {
   var sh = shuffleArray(currentQ.choices);
   gateObj = { worldY: -38, choices: sh, hit: false, zones: [[5,8],[9,12],[13,16]] };
   document.getElementById('s-stage').textContent = (stage + 1);
-  updateUI(); showQuiz();
+  updateUI(); showQuiz(); updateInventory();
   gameState = 'playing';
 }
 
@@ -168,15 +190,8 @@ function showQuiz() {
   var q = currentQ;
   var sentence = q.sentence.replace('______', '<b style="color:#ffd700;border-bottom:2px dashed #ffd700;padding:0 6px">______</b>');
   document.getElementById('q-text').innerHTML = '<span style="font-size:24px">' + q.emoji + '</span> ' + sentence;
-  var tip = hintsOpened < q.hints.length ? '💡 道のキラキラを取るとヒントが開く' : '';
-  document.getElementById('hint-tip').textContent = tip;
-  var hh = '';
-  for (var i = 0; i < q.hints.length; i++) {
-    hh += i < hintsOpened
-      ? '<span class="hint-slot hint-open">💡 ' + q.hints[i] + '</span>'
-      : '<span class="hint-slot hint-locked">🔒 ヒント' + (i + 1) + '</span>';
-  }
-  document.getElementById('hint-box').innerHTML = hh;
+  document.getElementById('hint-tip').textContent = q.japanese;
+  document.getElementById('hint-box').innerHTML = '';
   document.getElementById('quiz-box').style.display = 'block';
 }
 
@@ -222,8 +237,7 @@ function checkTile() {
       if (hintsOpened < currentQ.hints.length) {
         hintsOpened++;
         addP(c * TILE + TILE / 2, wy * TILE + TILE / 2, '#ffd700', 12);
-        showFB('💡 ヒント解放！', '#ffd700');
-        showQuiz();
+        showQuiz(); updateInventory();
       }
     }
   }
@@ -245,6 +259,7 @@ function checkTile() {
           showFB('✨ 正解！ +' + pts + 'pt', '#4caf50');
           var s2 = currentQ.sentence.replace('______', '<b style="color:#6f2">' + currentQ.answer + '</b>');
           document.getElementById('q-text').innerHTML = '<span style="font-size:24px">' + currentQ.emoji + '</span> ' + s2;
+          document.getElementById('hint-tip').innerHTML = currentQ.japanese.replace('______', '<span style="color:#6f2">' + currentQ.j_answer + '</span>');
           updateUI();
           setTimeout(function() { nextStageOrEnd(); }, 1600);
         } else {
@@ -260,11 +275,27 @@ function checkTile() {
   }
 }
 
+function updateInventory() {
+  for (var i = 0; i < 3; i++) {
+    var sl = document.getElementById('inv-slot-' + i);
+    if (!sl) continue;
+    if (currentQ && i < hintsOpened) {
+      sl.className = 'inv-slot filled';
+      sl.innerHTML = '<div class="slot-lbl">ヒント' + (i + 1) + '</div>' + currentQ.hints[i].replace(/ = /g, '<br>= ').replace(/ → /g, '<br>→');
+    } else {
+      sl.className = 'inv-slot';
+      sl.innerHTML = '<span style="font-size:20px;opacity:.3">🔒</span>';
+    }
+  }
+}
+
 function nextStageOrEnd() {
   stage++;
   if (stage >= questions.length) {
     gameState = 'gameover';
     document.getElementById('quiz-box').style.display = 'none';
+    document.getElementById('hint-noti').style.display = 'none';
+    document.getElementById('inventory').style.display = 'none';
     document.getElementById('final-score').textContent = score;
     document.getElementById('final-detail').textContent = '全' + questions.length + 'ステージクリア！';
     document.getElementById('game-over').style.display = 'flex';
@@ -386,16 +417,37 @@ function draw() {
     var ix = it.col * TILE + TILE / 2 - camOX;
     var iy = it.worldY * TILE + TILE / 2 - camOY;
     if (iy < -40 || iy > H + 40) continue;
-    var pulse = Math.sin(Date.now() * 0.005) * 3;
-    cx.fillStyle = 'rgba(255,215,0,0.2)';
-    cx.beginPath(); cx.arc(ix, iy, 18 + pulse, 0, Math.PI * 2); cx.fill();
-    cx.fillStyle = '#ffd700';
+    var bob2 = Math.sin(Date.now() * 0.004 + hi * 1.5) * 2.5;
+    cx.save();
+    cx.translate(ix, iy + bob2);
+    cx.rotate(0.18);
+    // 影
+    cx.fillStyle = 'rgba(0,0,0,0.2)';
+    cx.fillRect(-12, -15, 27, 34);
+    // 紙本体
+    cx.fillStyle = '#fffde8';
+    cx.fillRect(-14, -17, 26, 33);
+    // 折れ角
+    cx.fillStyle = '#e8d870';
     cx.beginPath();
-    cx.moveTo(ix, iy - 12); cx.lineTo(ix + 7, iy - 4); cx.lineTo(ix + 12, iy);
-    cx.lineTo(ix + 7, iy + 4); cx.lineTo(ix, iy + 12); cx.lineTo(ix - 7, iy + 4);
-    cx.lineTo(ix - 12, iy); cx.lineTo(ix - 7, iy - 4); cx.closePath(); cx.fill();
-    cx.fillStyle = '#fff'; cx.font = 'bold 12px sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
-    cx.fillText('?', ix, iy + 1);
+    cx.moveTo(6, -17); cx.lineTo(12, -10); cx.lineTo(12, -17);
+    cx.closePath(); cx.fill();
+    cx.fillStyle = '#c4ae40';
+    cx.beginPath();
+    cx.moveTo(6, -17); cx.lineTo(12, -10); cx.lineTo(6, -10);
+    cx.closePath(); cx.fill();
+    // 罫線
+    cx.fillStyle = '#c0b890';
+    cx.fillRect(-8, -6, 14, 2);
+    cx.fillRect(-8, 0, 14, 2);
+    cx.fillRect(-8, 6, 9, 2);
+    // ヒントマーク
+    cx.fillStyle = '#b8941e';
+    cx.font = 'bold 12px sans-serif';
+    cx.textAlign = 'center';
+    cx.textBaseline = 'middle';
+    cx.fillText('?', -1, 13);
+    cx.restore();
   }
   if (gateObj) {
     var g = gateObj;
@@ -506,18 +558,21 @@ function draw() {
   cx.fillStyle = '#ccc'; cx.fillRect(12, -16 + bob, 2, 18);
   cx.fillStyle = '#8b6914'; cx.fillRect(10, -1 + bob, 6, 3);
   cx.restore();
+  if (gameState === 'playing' && !answered) {
+    var arrowAlpha = 0.4 + Math.sin(Date.now() * 0.004) * 0.3;
+    cx.globalAlpha = arrowAlpha;
+    cx.fillStyle = '#ffd700';
+    cx.font = 'bold 16px sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+    cx.fillText('▲', ppx, ppy - 52);
+    cx.fillText('▲', ppx, ppy - 36);
+    cx.globalAlpha = 1;
+  }
   for (var pi = 0; pi < particles.length; pi++) {
     var pp = particles[pi];
     cx.globalAlpha = pp.life / 30; cx.fillStyle = pp.col;
     cx.beginPath(); cx.arc(pp.wx - camOX, pp.wy - camOY, pp.sz, 0, Math.PI * 2); cx.fill();
   }
   cx.globalAlpha = 1;
-  if (!answered && gateObj && player.worldY > gateObj.worldY + 6) {
-    var alpha2 = 0.4 + Math.sin(Date.now() * 0.004) * 0.2;
-    cx.fillStyle = 'rgba(255,215,0,' + alpha2 + ')';
-    cx.font = 'bold 15px sans-serif'; cx.textAlign = 'center';
-    cx.fillText('▲ 上に進もう！', W / 2, H * 0.42);
-  }
 }
 
 function loop() { update(); draw(); requestAnimationFrame(loop); }
