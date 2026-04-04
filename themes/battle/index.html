@@ -175,12 +175,12 @@ function startStage() {
   player.py = player.worldY * TILE + TILE / 2;
   camY = player.py;
   hintItems = [];
-  var hDist = [-8, -18, -28];
+  var hDist = [-9, -10, -11];
   for (var i = 0; i < Math.min(hDist.length, currentQ.hints.length); i++) {
     hintItems.push({ worldY: hDist[i], col: 7 + Math.floor(Math.random() * 7), collected: false });
   }
   var sh = shuffleArray(currentQ.choices);
-  gateObj = { worldY: -38, choices: sh, hit: false, zones: [[5,8],[9,12],[13,16]] };
+  gateObj = { worldY: -15, choices: sh, hit: false, zones: [[5,8],[9,12],[13,16]] };
   document.getElementById('s-stage').textContent = (stage + 1);
   updateUI(); showQuiz(); updateInventory();
   gameState = 'playing';
