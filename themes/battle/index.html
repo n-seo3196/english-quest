@@ -325,7 +325,10 @@ for (var di = 0; di < dpadBtns.length; di++) {
 }
 
 document.getElementById('start-btn').addEventListener('click', startGame);
-document.getElementById('retry-btn').addEventListener('click', function() { location.reload(); });
+document.getElementById('retry-btn').addEventListener('click', function() {
+  document.getElementById('game-over').style.display = 'none';
+  startGame();
+});
 
 function handleKeys() {
   if (gameState !== 'playing') return;
