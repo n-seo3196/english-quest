@@ -35,6 +35,20 @@ border:2px solid #c4a030;border-radius:10px;cursor:pointer;text-shadow:0 1px 3px
 .final-score{color:#ffd700;font-size:42px;font-weight:700;margin-bottom:6px}
 .final-detail{color:#a0b088;font-size:13px;margin-bottom:18px}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.1}}
+#collection-screen{background:rgba(20,40,10,0.97);overflow-y:auto}
+#col-run-score{color:#ffd700;font-size:28px;font-weight:700;margin:4px 0 2px}
+#col-bank{color:#a0b088;font-size:13px;margin-bottom:16px}
+#col-grid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:360px;margin-bottom:4px}
+.col-card{width:90px;border-radius:12px;padding:10px 6px 8px;text-align:center;font-size:11px;font-weight:700;border:2px solid;transition:all .2s}
+.col-owned{border-color:#ffd700;background:rgba(255,215,0,0.13);color:#f0e6c0}
+.col-locked{border-color:#554420;background:rgba(30,20,5,0.7);color:#665530}
+.col-secret{border-color:#1a1a1a;background:rgba(8,8,8,0.9);color:#333}
+.col-card .c-emoji{font-size:30px;display:block;margin-bottom:4px;line-height:1}
+.col-card .c-secret-box{width:36px;height:36px;background:#111;border-radius:8px;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#2a2a2a}
+.col-card .c-name{font-size:11px;margin-bottom:4px;min-height:14px}
+.col-card .c-badge{font-size:10px;color:#4caf50}
+.col-buy{margin-top:5px;padding:3px 10px;font-size:10px;font-weight:700;background:rgba(180,150,80,0.2);border:1px solid #8b6914;border-radius:10px;color:#ffd700;cursor:pointer}
+.col-buy:disabled{opacity:0.3;cursor:not-allowed}
 #left-col{display:flex;flex-direction:column;gap:5px;align-items:stretch}
 #hint-noti{background:rgba(30,20,5,0.85);color:#ffd700;font-size:13px;font-weight:700;padding:7px 16px;border-radius:6px;border:1px solid rgba(255,215,0,0.5);text-align:center;line-height:1.8;animation:blink 1.4s ease-in-out infinite;pointer-events:none;z-index:3}
 #inventory{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);display:none;gap:7px;z-index:3;pointer-events:none}
@@ -90,6 +104,16 @@ cursor:pointer;-webkit-tap-highlight-color:transparent}
   <div class="final-detail" id="final-detail"></div>
   <button class="big-btn" id="retry-btn">もう一度プレイ</button>
 </div>
+<div class="overlay" id="collection-screen" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px">
+  <h2 style="color:#f0e6c0;font-size:22px;margin-bottom:2px">&#x2694;&#xFE0F; QUEST COMPLETE</h2>
+  <div id="col-run-score">0</div>
+  <div id="col-bank"></div>
+  <div id="col-grid"></div>
+  <div style="display:flex;gap:12px;margin-top:16px">
+    <button class="big-btn" id="col-retry">もう一度プレイ</button>
+    <button class="big-btn" id="col-top" style="background:linear-gradient(135deg,#2a5a1a,#3a7a28);border-color:#4a8a38">トップへ</button>
+  </div>
+</div>
 
 <script>
 var cv = document.getElementById('c');
@@ -127,6 +151,16 @@ var questions = [
    hints:["last night → 過去形","clear の過去形 = cleared","We でも過去形は同じ"]}
 ];
 
+var shopItems = [
+  {id:'sword',     emoji:'⚔️', name:'短剣',         type:'武器', price:150, secret:false},
+  {id:'wand',      emoji:'🪄', name:'魔法の杖',      type:'魔法', price:250, secret:false},
+  {id:'bow',       emoji:'🏹', name:'弓',             type:'武器', price:350, secret:false},
+  {id:'crystal',   emoji:'🔮', name:'水晶玉',         type:'魔法', price:500, secret:false},
+  {id:'holysword', emoji:'🗡️', name:'聖剣',           type:'武器', price:700, secret:true},
+  {id:'spellbook', emoji:'📖', name:'封印の魔法書',   type:'魔法', price:900, secret:true}
+];
+var bank = parseInt(localStorage.getItem('eq_bank') || '0');
+var owned = JSON.parse(localStorage.getItem('eq_owned') || '[]');
 var shuffledQuestions = [];
 var player = { col: 10, worldY: 0, px: 0, py: 0, dir: 'up', frame: 0 };
 var camY = 0;
@@ -291,16 +325,72 @@ function updateInventory() {
   }
 }
 
+function saveStorage() {
+  localStorage.setItem('eq_bank', bank);
+  localStorage.setItem('eq_owned', JSON.stringify(owned));
+}
+
+function renderCollection() {
+  document.getElementById('col-run-score').textContent = score + ' pt';
+  document.getElementById('col-bank').textContent = '累計残高: ' + bank + ' pt';
+  var grid = document.getElementById('col-grid');
+  grid.innerHTML = '';
+  for (var i = 0; i < shopItems.length; i++) {
+    var item = shopItems[i];
+    var isOwned = owned.indexOf(item.id) >= 0;
+    var canBuy = !isOwned && bank >= item.price && !item.secret;
+    var card = document.createElement('div');
+    if (isOwned) {
+      card.className = 'col-card col-owned';
+      card.innerHTML = '<span class="c-emoji">' + item.emoji + '</span>'
+        + '<div class="c-name">' + item.name + '</div>'
+        + '<div class="c-badge">✓ 所持</div>';
+    } else if (item.secret) {
+      card.className = 'col-card col-secret';
+      card.innerHTML = '<div class="c-secret-box">?</div>'
+        + '<div class="c-name">???</div>';
+    } else {
+      card.className = 'col-card col-locked';
+      card.innerHTML = '<span class="c-emoji" style="opacity:0.45">' + item.emoji + '</span>'
+        + '<div class="c-name">' + item.name + '</div>';
+      var btn = document.createElement('button');
+      btn.className = 'col-buy';
+      btn.textContent = item.price + 'pt 購入';
+      btn.disabled = !canBuy;
+      (function(id) {
+        btn.addEventListener('click', function() { buyItem(id); });
+      })(item.id);
+      card.appendChild(btn);
+    }
+    grid.appendChild(card);
+  }
+}
+
+function buyItem(id) {
+  var item = null;
+  for (var i = 0; i < shopItems.length; i++) { if (shopItems[i].id === id) { item = shopItems[i]; break; } }
+  if (!item || bank < item.price || owned.indexOf(id) >= 0) return;
+  bank -= item.price;
+  owned.push(id);
+  saveStorage();
+  renderCollection();
+}
+
+function showCollection() {
+  bank += score;
+  saveStorage();
+  document.getElementById('quiz-box').style.display = 'none';
+  document.getElementById('hint-noti').style.display = 'none';
+  document.getElementById('inventory').style.display = 'none';
+  renderCollection();
+  document.getElementById('collection-screen').style.display = 'flex';
+}
+
 function nextStageOrEnd() {
   stage++;
   if (stage >= questions.length) {
     gameState = 'gameover';
-    document.getElementById('quiz-box').style.display = 'none';
-    document.getElementById('hint-noti').style.display = 'none';
-    document.getElementById('inventory').style.display = 'none';
-    document.getElementById('final-score').textContent = score;
-    document.getElementById('final-detail').textContent = '全' + questions.length + 'ステージクリア！';
-    document.getElementById('game-over').style.display = 'flex';
+    showCollection();
   } else { startStage(); }
 }
 
@@ -328,6 +418,13 @@ document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('retry-btn').addEventListener('click', function() {
   document.getElementById('game-over').style.display = 'none';
   startGame();
+});
+document.getElementById('col-retry').addEventListener('click', function() {
+  document.getElementById('collection-screen').style.display = 'none';
+  startGame();
+});
+document.getElementById('col-top').addEventListener('click', function() {
+  location.href = '../../index.html';
 });
 
 function handleKeys() {
