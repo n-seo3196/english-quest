@@ -122,16 +122,16 @@
 #### Stage 2: 三人称単数現在
 ```javascript
 {
-  emoji: "🧙",
-  sentence: "She ______ magic every day.",
-  answer: "uses",
-  japanese: "彼女は毎日、魔法を______。",
-  j_answer: "使う",
-  choices: ["use", "uses", "used"],
+  emoji: "💚",
+  sentence: "She ______ the party every battle.",
+  answer: "heals",
+  japanese: "彼女は毎回の戦いで、仲間を______。",
+  j_answer: "回復する",
+  choices: ["heal", "heals", "healed"],
   hints: [
-    "every day → 現在形",
+    "主語 = 自分と相手以外の1人か1つ",
     "She = 三人称単数 → s",
-    "use の三単現は uses"
+    "heal の三単現は heals"
   ]
 }
 ```
@@ -157,14 +157,14 @@
 ```javascript
 {
   emoji: "🛡️",
-  sentence: "I ______ my shield yesterday.",
-  answer: "used",
-  japanese: "私は昨日、盾を______。",
-  j_answer: "使った",
-  choices: ["use", "uses", "used"],
+  sentence: "I ______ my armor yesterday.",
+  answer: "equipped",
+  japanese: "私は昨日、防具を______。",
+  j_answer: "装備した",
+  choices: ["equip", "equips", "equipped"],
   hints: [
     "yesterday → 過去形",
-    "use の過去形は used",
+    "equip の過去形は equipped",
     "過去形は主語で変わらない"
   ]
 }
@@ -174,14 +174,14 @@
 ```javascript
 {
   emoji: "⚔️",
-  sentence: "We ______ the boss last night.",
-  answer: "defeated",
-  japanese: "私たちは昨夜、ボスを______。",
-  j_answer: "倒した",
-  choices: ["defeat", "defeats", "defeated"],
+  sentence: "We ______ the final stage last night.",
+  answer: "cleared",
+  japanese: "私たちは昨夜、最終ステージを______。",
+  j_answer: "クリアした",
+  choices: ["clear", "clears", "cleared"],
   hints: [
     "last night → 過去形",
-    "defeat の過去形 = defeated",
+    "clear の過去形 = cleared",
     "We でも過去形は同じ"
   ]
 }
@@ -229,7 +229,7 @@
 
 | テーマ | 問題文 | 正解 |
 |--------|--------|------|
-| バトル | We ______ the boss last night. | defeated |
+| バトル | We ______ the final stage last night. | cleared |
 | 動物園 | The penguin ______ into the water. | jumped |
 | 電車 | The train ______ at 9 AM. | departed |
 
