@@ -49,6 +49,12 @@ border:2px solid #c4a030;border-radius:10px;cursor:pointer;text-shadow:0 1px 3px
 .col-card .c-badge{font-size:10px;color:#4caf50}
 .col-buy{margin-top:5px;padding:3px 10px;font-size:10px;font-weight:700;background:rgba(180,150,80,0.2);border:1px solid #8b6914;border-radius:10px;color:#ffd700;cursor:pointer}
 .col-buy:disabled{opacity:0.3;cursor:not-allowed}
+#village-dialog{position:fixed;bottom:28%;left:50%;transform:translateX(-50%);width:fit-content;max-width:88vw;
+background:rgba(30,20,5,0.96);border:2px solid #8b6914;border-radius:14px;padding:16px 22px;
+text-align:center;z-index:6;pointer-events:auto;display:none}
+#village-dialog p{color:#f0e6c0;font-size:14px;line-height:1.8;margin-bottom:14px}
+.vd-btn{padding:10px 22px;font-size:14px;font-weight:700;color:#fff;background:linear-gradient(135deg,#8b6914,#a07818);
+border:2px solid #c4a030;border-radius:10px;cursor:pointer;margin:0 6px;text-shadow:0 1px 3px rgba(0,0,0,0.4)}
 #left-col{display:flex;flex-direction:column;gap:5px;align-items:stretch}
 #hint-noti{background:rgba(30,20,5,0.85);color:#ffd700;font-size:13px;font-weight:700;padding:7px 16px;border-radius:6px;border:1px solid rgba(255,215,0,0.5);text-align:center;line-height:1.8;animation:blink 1.4s ease-in-out infinite;pointer-events:none;z-index:3}
 #inventory{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);display:none;gap:7px;z-index:3;pointer-events:none}
@@ -87,6 +93,11 @@ cursor:pointer;-webkit-tap-highlight-color:transparent}
   <div class="inv-slot" id="inv-slot-0"></div>
   <div class="inv-slot" id="inv-slot-1"></div>
   <div class="inv-slot" id="inv-slot-2"></div>
+</div>
+<div id="village-dialog">
+  <p>&#x1F9D9; 村人：おかえり、勇者よ！<br>スコアを使ってアイテムと交換できるぞ。</p>
+  <button class="vd-btn" id="vd-shop">アイテムと交換</button>
+  <button class="vd-btn" id="vd-retry" style="background:linear-gradient(135deg,#2a5a1a,#3a7a28);border-color:#4a8a38">もう一度プレイ</button>
 </div>
 <div id="quiz-box">
   <div id="q-text"></div>
@@ -165,6 +176,7 @@ var shuffledQuestions = [];
 var player = { col: 10, worldY: 0, px: 0, py: 0, dir: 'up', frame: 0 };
 var camY = 0;
 var score = 0, combo = 0, stage = 0;
+var villageWorldY = 0;
 var currentQ = null, hintsOpened = 0, answered = false;
 var gameState = 'title';
 var lastMoveTime = 0;
@@ -232,7 +244,7 @@ function showQuiz() {
 }
 
 function updateUI() {
-  document.getElementById('s-score').textContent = score;
+  document.getElementById('s-score').textContent = bank + score;
   document.getElementById('s-combo').textContent = combo > 0 ? 'x' + combo : '-';
 }
 
@@ -250,7 +262,8 @@ function addP(wx, wy, col, n) {
 }
 
 function tryMove(dir) {
-  if (gameState !== 'playing' || answered) return;
+  if ((gameState !== 'playing' && gameState !== 'victory') || answered) return;
+  if (gameState === 'victory' && dir !== 'up') return;
   var nc = player.col, nwy = player.worldY;
   player.dir = dir;
   if (dir === 'up') nwy--;
@@ -276,6 +289,11 @@ function checkTile() {
         showQuiz(); updateInventory();
       }
     }
+  }
+  if (gameState === 'victory' && player.worldY <= villageWorldY) {
+    gameState = 'dialog';
+    document.getElementById('village-dialog').style.display = 'block';
+    return;
   }
   var g = gateObj;
   if (g && !g.hit && wy === g.worldY) {
@@ -379,9 +397,6 @@ function buyItem(id) {
 function showCollection() {
   bank += score;
   saveStorage();
-  document.getElementById('quiz-box').style.display = 'none';
-  document.getElementById('hint-noti').style.display = 'none';
-  document.getElementById('inventory').style.display = 'none';
   renderCollection();
   document.getElementById('collection-screen').style.display = 'flex';
 }
@@ -389,8 +404,12 @@ function showCollection() {
 function nextStageOrEnd() {
   stage++;
   if (stage >= questions.length) {
-    gameState = 'gameover';
-    showCollection();
+    gameState = 'victory';
+    villageWorldY = player.worldY - 18;
+    document.getElementById('quiz-box').style.display = 'none';
+    document.getElementById('hint-noti').style.display = 'none';
+    document.getElementById('inventory').style.display = 'none';
+    showFB('🏰 館へ向かおう！', '#ffd700');
   } else { startStage(); }
 }
 
@@ -425,6 +444,14 @@ document.getElementById('col-retry').addEventListener('click', function() {
 });
 document.getElementById('col-top').addEventListener('click', function() {
   location.href = '../../index.html';
+});
+document.getElementById('vd-shop').addEventListener('click', function() {
+  document.getElementById('village-dialog').style.display = 'none';
+  showCollection();
+});
+document.getElementById('vd-retry').addEventListener('click', function() {
+  document.getElementById('village-dialog').style.display = 'none';
+  startGame();
 });
 
 function handleKeys() {
@@ -668,6 +695,83 @@ function draw() {
     cx.fillText('▲', ppx, ppy - 52);
     cx.fillText('▲', ppx, ppy - 36);
     cx.globalAlpha = 1;
+  }
+  if (gameState === 'victory' || gameState === 'dialog') {
+    var arrowAlpha2 = 0.4 + Math.sin(Date.now() * 0.004) * 0.3;
+    cx.globalAlpha = arrowAlpha2;
+    cx.fillStyle = '#ffd700';
+    cx.font = 'bold 16px sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+    cx.fillText('▲', ppx, ppy - 52);
+    cx.fillText('▲', ppx, ppy - 36);
+    cx.globalAlpha = 1;
+    // 館を描画
+    var bx = 10 * TILE + TILE / 2 - camOX;
+    var by = (villageWorldY - 7) * TILE - camOY;
+    // 石の基礎
+    cx.fillStyle = '#8a7a60'; cx.fillRect(bx - 55, by + 20, 110, 80);
+    cx.fillStyle = '#9a8a70'; cx.fillRect(bx - 52, by + 23, 104, 74);
+    // 塔（左右）
+    cx.fillStyle = '#7a6a50'; cx.fillRect(bx - 64, by, 22, 100);
+    cx.fillStyle = '#7a6a50'; cx.fillRect(bx + 42, by, 22, 100);
+    // 塔の屋根（三角）
+    cx.fillStyle = '#5a3a1a';
+    cx.beginPath(); cx.moveTo(bx - 64, by); cx.lineTo(bx - 53, by - 22); cx.lineTo(bx - 42, by); cx.closePath(); cx.fill();
+    cx.beginPath(); cx.moveTo(bx + 42, by); cx.lineTo(bx + 53, by - 22); cx.lineTo(bx + 64, by); cx.closePath(); cx.fill();
+    // 本体屋根
+    cx.fillStyle = '#4a2e10';
+    cx.beginPath(); cx.moveTo(bx - 58, by + 20); cx.lineTo(bx, by - 8); cx.lineTo(bx + 58, by + 20); cx.closePath(); cx.fill();
+    // 窓（左右）
+    cx.fillStyle = '#ffd070'; cx.fillRect(bx - 42, by + 34, 16, 18);
+    cx.fillStyle = '#ffd070'; cx.fillRect(bx + 26, by + 34, 16, 18);
+    // 窓枠
+    cx.strokeStyle = '#5a4020'; cx.lineWidth = 2;
+    cx.strokeRect(bx - 42, by + 34, 16, 18);
+    cx.strokeRect(bx + 26, by + 34, 16, 18);
+    // ドア
+    cx.fillStyle = '#3a2010'; cx.fillRect(bx - 10, by + 56, 20, 44);
+    cx.fillStyle = '#5a3820'; cx.fillRect(bx - 8, by + 58, 16, 40);
+    cx.fillStyle = '#c4a030'; cx.beginPath(); cx.arc(bx + 4, by + 78, 2.5, 0, Math.PI * 2); cx.fill();
+    // 看板
+    cx.fillStyle = '#6a4a1a'; cx.fillRect(bx - 30, by + 4, 60, 16);
+    cx.strokeStyle = '#c4a030'; cx.lineWidth = 1.5; cx.strokeRect(bx - 30, by + 4, 60, 16);
+    cx.fillStyle = '#ffd700'; cx.font = 'bold 10px sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+    cx.fillText('🏰 英語の館', bx, by + 12);
+    // 村人を描画
+    var npx = bx;
+    var npy = (villageWorldY) * TILE + TILE / 2 - camOY;
+    cx.save(); cx.translate(npx, npy);
+    // 影
+    cx.fillStyle = 'rgba(0,0,0,0.15)';
+    cx.beginPath(); cx.ellipse(0, 20, 12, 5, 0, 0, Math.PI * 2); cx.fill();
+    // ローブ
+    cx.fillStyle = '#8a5a2a';
+    cx.beginPath(); cx.moveTo(-8, 0); cx.lineTo(8, 0); cx.lineTo(10, 18); cx.lineTo(-10, 18); cx.closePath(); cx.fill();
+    // 足
+    cx.fillStyle = '#6a4a1a'; cx.fillRect(-6, 14, 5, 8); cx.fillRect(1, 14, 5, 8);
+    // 杖
+    cx.fillStyle = '#7a5a2a'; cx.fillRect(12, -14, 3, 30);
+    cx.fillStyle = '#c4a030'; cx.beginPath(); cx.arc(13, -15, 4, 0, Math.PI * 2); cx.fill();
+    // 体
+    cx.fillStyle = '#a07840'; cx.fillRect(-7, -2, 14, 12);
+    // 頭
+    cx.fillStyle = '#e8c090'; cx.beginPath(); cx.arc(0, -9, 9, 0, Math.PI * 2); cx.fill();
+    // 帽子
+    cx.fillStyle = '#4a2a80';
+    cx.fillRect(-9, -18, 18, 6);
+    cx.beginPath(); cx.moveTo(-5, -18); cx.lineTo(0, -30); cx.lineTo(5, -18); cx.closePath(); cx.fill();
+    // 目
+    cx.fillStyle = '#222'; cx.fillRect(-4, -11, 2.5, 2.5); cx.fillRect(1.5, -11, 2.5, 2.5);
+    // ひげ
+    cx.fillStyle = '#888'; cx.fillRect(-4, -5, 8, 1.5);
+    cx.restore();
+    // 会話アイコン（点滅）
+    if (gameState === 'victory') {
+      var talkAlpha = 0.5 + Math.sin(Date.now() * 0.006) * 0.5;
+      cx.globalAlpha = talkAlpha;
+      cx.font = '18px sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+      cx.fillText('💬', npx, npy - 44);
+      cx.globalAlpha = 1;
+    }
   }
   for (var pi = 0; pi < particles.length; pi++) {
     var pp = particles[pi];
