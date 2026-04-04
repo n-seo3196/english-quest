@@ -83,6 +83,45 @@
 
 ---
 
+## 語彙選択ガイドライン
+
+対象：小学校高学年〜中学生（英語学習初期〜中期）
+
+### 基本方針
+
+- **答えの動詞は「聞いたことがある」レベルを優先する**
+- 「知らなくても意味は想像できる」ではなく「絶対聞いたことがある」単語を選ぶ
+- ゲームのテーマ（バトル、動物など）に合った文脈で使われていれば、なじみ感が増す
+
+### 使いやすい動詞リスト（優先度高）
+
+| 動詞 | 活用の特徴 | 備考 |
+|------|-----------|------|
+| use | use / uses / used | 規則変化。汎用性高い |
+| attack | attack / attacks / attacked | バトルテーマの定番 |
+| play | play / plays / played | 学校英語の最頻出 |
+| watch | watch / watches / watched | 三単現で es がつく練習に使える |
+| help | help / helps / helped | 規則変化。自然な文が作りやすい |
+| clear | clear / clears / cleared | ゲームの「クリア」として子どもに馴染み深い |
+| find | find / finds / found | 不規則変化。過去形の練習に使える |
+| win | win / wins / won | 不規則変化。ゲームの文脈で自然 |
+| run | run / runs / ran | 不規則変化。シンプルで覚えやすい |
+| eat | eat / eats / ate | 不規則変化。汎用性高い |
+
+### 避けるべき語彙
+
+- `defeat`（なじみが薄い。「倒す」の英語として定着していない）
+- `equip`（ゲーム用語として知っていても活用形が難しい）
+- 動詞自体の意味がわからないと文法問題に集中できなくなるもの全般
+
+### 判断基準
+
+> その単語を中学1年生が聞いたとき、意味がわかるか？
+
+わからなければ、文法ではなく語彙の問題になってしまうので変更する。
+
+---
+
 ## 文法カテゴリ
 
 現在カバーしている（または予定の）文法テーマ：
@@ -122,16 +161,16 @@
 #### Stage 2: 三人称単数現在
 ```javascript
 {
-  emoji: "💚",
-  sentence: "She ______ the party every battle.",
-  answer: "heals",
-  japanese: "彼女は毎回の戦いで、仲間を______。",
-  j_answer: "回復する",
-  choices: ["heal", "heals", "healed"],
+  emoji: "🧙",
+  sentence: "She ______ magic every day.",
+  answer: "uses",
+  japanese: "彼女は毎日、魔法を______。",
+  j_answer: "使う",
+  choices: ["use", "uses", "used"],
   hints: [
     "主語 = 自分と相手以外の1人か1つ",
     "She = 三人称単数 → s",
-    "heal の三単現は heals"
+    "use の三単現は uses"
   ]
 }
 ```
@@ -157,14 +196,14 @@
 ```javascript
 {
   emoji: "🛡️",
-  sentence: "I ______ my armor yesterday.",
-  answer: "equipped",
-  japanese: "私は昨日、防具を______。",
-  j_answer: "装備した",
-  choices: ["equip", "equips", "equipped"],
+  sentence: "I ______ my shield yesterday.",
+  answer: "used",
+  japanese: "私は昨日、盾を______。",
+  j_answer: "使った",
+  choices: ["use", "uses", "used"],
   hints: [
     "yesterday → 過去形",
-    "equip の過去形は equipped",
+    "use の過去形は used",
     "過去形は主語で変わらない"
   ]
 }
