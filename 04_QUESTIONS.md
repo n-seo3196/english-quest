@@ -139,92 +139,57 @@
 
 ## 現在の問題一覧
 
-### バトルモード（5問）
+### バトルモード（30問プール・毎回5問ランダム出題）
 
-#### Stage 1: 三人称単数現在
-```javascript
-{
-  emoji: "🐉",
-  sentence: "The hero ______ the dragon.",
-  answer: "attacks",
-  japanese: "勇者はドラゴンを______。",
-  j_answer: "攻撃する",
-  choices: ["attack", "attacks", "attacked"],
-  hints: [
-    "主語 = 自分と相手以外の1人か1つ",
-    "The hero = 三人称単数",
-    "現在の文 → 現在形"
-  ]
-}
-```
+#### 現在形（7問）― 主語 I/you/we/they + 動詞そのまま
 
-#### Stage 2: 三人称単数現在
-```javascript
-{
-  emoji: "🧙",
-  sentence: "She ______ magic every day.",
-  answer: "uses",
-  japanese: "彼女は毎日、魔法を______。",
-  j_answer: "使う",
-  choices: ["use", "uses", "used"],
-  hints: [
-    "主語 = 自分と相手以外の1人か1つ",
-    "She = 三人称単数 → s",
-    "use の三単現は uses"
-  ]
-}
-```
+| # | 絵文字 | 英文 | 正解 | 日本語訳 |
+|---|--------|------|------|---------|
+| 1 | ⚔️ | I ______ every day to become stronger. | train | 私は強くなるために毎日______。 |
+| 2 | 🏰 | We ______ the enemy every night. | watch | 私たちは毎晩、敵を______。 |
+| 3 | 🗡️ | You ______ magic at the academy. | learn | あなたは学院で魔法を______。 |
+| 4 | 👾 | They ______ the village every day. | save | 彼らは毎日、村を______。 |
+| 5 | 🔥 | We ______ the dungeon every weekend. | clear | 私たちは毎週末、ダンジョンを______。 |
+| 6 | 🛡️ | I ______ my sword after every battle. | clean | 私は戦いのたびに剣を______。 |
+| 7 | 💫 | You ______ your friends in every battle. | help | あなたは毎回の戦いで仲間を______。 |
 
-#### Stage 3: 現在進行形
-```javascript
-{
-  emoji: "👾",
-  sentence: "The monsters ______ the town now.",
-  answer: "are attacking",
-  japanese: "モンスターたちは今、街を______。",
-  j_answer: "攻撃している",
-  choices: ["attack", "attacks", "are attacking"],
-  hints: [
-    "now = 今 → 現在進行形",
-    "monsters = 複数 → are",
-    "進行形 = are + 動詞ing"
-  ]
-}
-```
+#### 三単現（8問）― 主語 he/she/it/固有名詞 + 動詞+s
 
-#### Stage 4: 過去形
-```javascript
-{
-  emoji: "🛡️",
-  sentence: "I ______ my shield yesterday.",
-  answer: "used",
-  japanese: "私は昨日、盾を______。",
-  j_answer: "使った",
-  choices: ["use", "uses", "used"],
-  hints: [
-    "yesterday → 過去形",
-    "use の過去形は used",
-    "過去形は主語で変わらない"
-  ]
-}
-```
+| # | 絵文字 | 英文 | 正解 | 日本語訳 |
+|---|--------|------|------|---------|
+| 8 | 🐉 | The hero ______ the dragon. | attacks | 勇者はドラゴンを______。 |
+| 9 | 🧙 | She ______ magic every day. | uses | 彼女は毎日、魔法を______。 |
+| 10 | 🔥 | The dragon ______ in the sky every night. | flies | ドラゴンは毎晩、空を______。 |
+| 11 | 🧝 | The elf ______ through the forest every day. | runs | エルフは毎日、森の中を______。 |
+| 12 | 👸 | The princess ______ her friends every battle. | helps | 王女は毎回の戦いで、仲間を______。 |
+| 13 | 🧙‍♂️ | The wizard ______ a new spell every day. | learns | 魔法使いは毎日、新しい呪文を______。 |
+| 14 | ⚔️ | He ______ his sword every morning. | cleans | 彼は毎朝、剣を______。 |
+| 15 | 🛡️ | The knight ______ the weak every day. | saves | 騎士は毎日、弱い者を______。 |
 
-#### Stage 5: 過去形
-```javascript
-{
-  emoji: "⚔️",
-  sentence: "We ______ the final stage last night.",
-  answer: "cleared",
-  japanese: "私たちは昨夜、最終ステージを______。",
-  j_answer: "クリアした",
-  choices: ["clear", "clears", "cleared"],
-  hints: [
-    "last night → 過去形",
-    "clear の過去形 = cleared",
-    "We でも過去形は同じ"
-  ]
-}
-```
+#### 現在進行形（8問）― be動詞 + 動詞ing
+
+| # | 絵文字 | 英文 | 正解 | 日本語訳 |
+|---|--------|------|------|---------|
+| 16 | 👾 | The monsters ______ the town now. | are attacking | モンスターたちは今、街を______。 |
+| 17 | 🐉 | The dragon ______ over the castle right now. | is flying | ドラゴンは今、城の上を______。 |
+| 18 | 🔮 | I ______ a new magic spell now. | am learning | 私は今、新しい呪文を______。 |
+| 19 | 🌲 | The heroes ______ the dark forest now. | are crossing | 勇者たちは今、暗い森を______。 |
+| 20 | 🧪 | The witch ______ a potion right now. | is making | 魔女は今、薬を______。 |
+| 21 | ⚔️ | He ______ with the dark knight right now. | is fighting | 彼は今、ダークナイトと______。 |
+| 22 | 🏃 | We ______ to the castle now. | are running | 私たちは今、城へ______。 |
+| 23 | 🏰 | The enemy ______ our castle right now. | is attacking | 敵は今、私たちの城を______。 |
+
+#### 過去形（7問）― 動詞+ed（または不規則変化）
+
+| # | 絵文字 | 英文 | 正解 | 日本語訳 | 備考 |
+|---|--------|------|------|---------|------|
+| 24 | 🛡️ | I ______ my shield yesterday. | used | 私は昨日、盾を______。 | 規則 |
+| 25 | ⚔️ | We ______ the final stage last night. | cleared | 私たちは昨夜、最終ステージを______。 | 規則 |
+| 26 | 🏛️ | They ______ the ancient ruins last month. | visited | 彼らは先月、古代遺跡を______。 | 規則 |
+| 27 | 👸 | The knight ______ the princess last week. | helped | 騎士は先週、王女を______。 | 規則 |
+| 28 | 👾 | The monsters ______ the village last night. | attacked | モンスターたちは昨夜、村を______。 | 規則 |
+| 29 | 🔮 | We ______ the dragon yesterday. | fought | 私たちは昨日、ドラゴンと______。 | **不規則**（fight→fought） |
+| 30 | 💚 | She ______ the wounded knight yesterday. | healed | 彼女は昨日、傷ついた騎士を______。 | 規則 |
 
 ---
 
