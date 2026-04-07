@@ -456,7 +456,7 @@ document.getElementById('vd-retry').addEventListener('click', function() {
 });
 
 function handleKeys() {
-  if (gameState !== 'playing') return;
+  if (gameState !== 'playing' && gameState !== 'victory') return;
   var now = Date.now();
   if (now - lastMoveTime < 100) return;
   if (keysDown['ArrowUp'] || keysDown['w']) { tryMove('up'); lastMoveTime = now; }
