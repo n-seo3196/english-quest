@@ -405,6 +405,7 @@ function nextStageOrEnd() {
   stage++;
   if (stage >= questions.length) {
     gameState = 'victory';
+    answered = false;
     villageWorldY = player.worldY - 18;
     document.getElementById('quiz-box').style.display = 'none';
     document.getElementById('hint-noti').style.display = 'none';
